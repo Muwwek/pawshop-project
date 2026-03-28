@@ -1,0 +1,22 @@
+{
+  "cSpell.enabled": true,
+  "cSpell.words": [
+    "pawshop",
+    "idCard",
+    "fullname",
+    "submitting",
+    "interestRate",
+    "maxDuration",
+    "minAmount",
+    "maxAmount",
+    "REDEEMED",
+    "FORFEITED",
+    "myteam"
+  ],
+  "cSpell.ignoreRegExpList": [
+    "/[\u0e00-\u0e7f]+/"
+  ],
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportUnknownWord": "none"
+  }
+}
