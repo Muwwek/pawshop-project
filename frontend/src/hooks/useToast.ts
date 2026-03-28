@@ -1,0 +1,28 @@
+import { useState, useCallback } from 'react';
+import { ToastType } from '../components/ui/Toast';
+
+export function useToast() {
+  const [toast, setToast] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: ToastType;
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success',
+  });
+
+  const showToast = useCallback((message: string, type: ToastType = 'success') => {
+    setToast({
+      isOpen: true,
+      message,
+      type,
+    });
+  }, []);
+
+  const hideToast = useCallback(() => {
+    setToast((prev) => ({ ...prev, isOpen: false }));
+  }, []);
+
+  return { toast, showToast, hideToast };
+}
