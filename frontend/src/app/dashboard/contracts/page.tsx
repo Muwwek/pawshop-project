@@ -51,6 +51,7 @@ export default function ContractsPage() {
         (c) =>
           c.contractNumber.toLowerCase().includes(q) ||
           c.customerName.toLowerCase().includes(q) ||
+          c.itemName?.toLowerCase().includes(q) ||
           c.itemDescription.toLowerCase().includes(q)
       );
     }
@@ -110,7 +111,13 @@ export default function ContractsPage() {
     {
       key: 'itemDescription',
       label: 'รายละเอียดสิ่งของ',
-      className: 'max-w-[200px] truncate',
+      className: 'max-w-[250px]',
+      render: (item: Contract) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900">{item.itemName}</span>
+          <span className="text-xs text-gray-500 truncate">{item.itemDescription}</span>
+        </div>
+      ),
     },
     {
       key: 'amount',
@@ -144,7 +151,7 @@ export default function ContractsPage() {
             <span className={`font-medium ${diffDays < 0 && item.status === 'ACTIVE' ? 'text-red-600' : 'text-gray-900'}`}>
               {dueDate.toLocaleDateString('th-TH')}
             </span>
-            {item.status === 'ACTIVE' && (
+            {['ACTIVE', 'RENEWED', 'NEAR_DUE', 'EXPIRED'].includes(item.status) && (
               <span className={`text-[10px] font-bold uppercase ${
                 diffDays < 0 ? 'text-red-500' : diffDays <= 7 ? 'text-amber-500' : 'text-emerald-600'
               }`}>
@@ -189,12 +196,14 @@ export default function ContractsPage() {
 
       {/* Filters */}
       <div className="flex items-center gap-3 mb-6 overflow-x-auto pb-2">
-        {['', 'ACTIVE', 'REDEEMED', 'EXPIRED', 'FORFEITED'].map((status) => {
+        {['', 'ACTIVE', 'RENEWED', 'NEAR_DUE', 'REDEEMED', 'EXPIRED', 'FORFEITED'].map((status) => {
           const labels: Record<string, string> = {
             '': 'ทั้งหมด',
-            ACTIVE: 'จำนำอยู่',
+            ACTIVE: 'จำนำปกติ',
+            RENEWED: 'ต่อดอก',
+            NEAR_DUE: 'ใกล้กำหนด',
             REDEEMED: 'ไถ่คืน',
-            EXPIRED: 'หมดอายุ',
+            EXPIRED: 'เลยกำหนด',
             FORFEITED: 'หลุดจำนำ',
           };
           return (
@@ -257,7 +266,7 @@ export default function ContractsPage() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Input label="อัตราดอกเบี้ย (%)" name="interestRate" type="number" step="0.1" defaultValue="1.5" required />
-            <Input label="ระยะเวลา (วัน)" name="duration" type="number" defaultValue="30" required />
+            <Input label="ระยะเวลา (วัน)" name="duration" type="number" defaultValue="60" required />
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" type="button" onClick={() => setIsModalOpen(false)}>

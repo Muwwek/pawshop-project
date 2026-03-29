@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { MENU_ITEMS, Role } from '@/lib/types';
-import { ChevronLeft, ChevronRight, Crown, User, UserCircle } from 'lucide-react';
+import { Banknote, ChevronLeft, ChevronRight, Crown, User, UserCircle } from 'lucide-react';
 
 interface SidebarProps {
   role: Role;
@@ -39,7 +39,7 @@ export default function Sidebar({ role, userName }: SidebarProps) {
       <div className={`flex items-center ${collapsed ? 'justify-center px-4' : 'px-6'} py-6 border-b border-white/[0.08]`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0">
-            <span className="text-white text-lg font-bold">P</span>
+            <Banknote className="w-5 h-5 text-white" />
           </div>
           {!collapsed && (
             <div>

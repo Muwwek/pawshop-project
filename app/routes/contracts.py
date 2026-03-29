@@ -32,6 +32,8 @@ async def get_contracts(
 
     contracts = list(db.contracts.find(query).sort("created_at", -1))
     
+    users_cache = {str(u["_id"]): u.get("first_name") or u.get("username", "System") for u in db.users.find({}, {"first_name": 1, "username": 1})}
+    
     results = []
     for c in contracts:
         # Join customer and item data
@@ -55,6 +57,24 @@ async def get_contracts(
                 rate = c.get("interest_rate", 2.5) # default if not set
                 interest_due = (principal * rate * months_passed) / 100
 
+        display_status = db_status
+        is_renewed = c.get("is_renewed", False)
+        if db_status == "ACTIVE":
+            due_date_dt = c.get("due_date")
+            if due_date_dt:
+                # ถ้าเกินกำหนดให้โชว์ EXPIRED
+                if now > due_date_dt:
+                    display_status = "EXPIRED"
+                # ถ้าเหลือน้อยกว่าหรือเท่ากับ 7 วัน ให้โชว์ NEAR_DUE
+                elif (due_date_dt - now).days <= 7:
+                    display_status = "NEAR_DUE"
+                # ถ้าเคยต่อดอกมาแล้ว ให้โชว์ RENEWED
+                elif is_renewed:
+                    display_status = "RENEWED"
+
+        creator_id = str(c.get("created_by_id")) if c.get("created_by_id") else None
+        created_by_name = users_cache.get(creator_id, "System")
+
         results.append({
             "id": str(c["_id"]),
             "contractNumber": c.get("contract_number"),
@@ -69,11 +89,11 @@ async def get_contracts(
             "interestDue": interest_due, # ดอกเบี้ยค้างชำระ
             "totalRedeemAmount": c.get("principal_amount") + interest_due, # ยอดไถ่คืนรวม
             "estimatedValue": c.get("estimated_value"),
-            "status": db_status,
+            "status": display_status,
             "startDate": c.get("start_date").isoformat() if c.get("start_date") else None,
             "dueDate": c.get("due_date").isoformat() if c.get("due_date") else None,
             "createdAt": c.get("created_at").isoformat() if c.get("created_at") else None,
-            "createdBy": "System",
+            "createdBy": created_by_name,
         })
     
     return results
@@ -110,6 +130,8 @@ async def create_contract(request: ContractCreate, user: dict = Depends(get_curr
         "start_date": datetime.datetime.utcnow(),
         "due_date": datetime.datetime.fromisoformat(request.dueDate.replace("Z", "+00:00")),
         "created_at": datetime.datetime.utcnow(),
+        "created_by_id": ObjectId(user["id"]),
+        "is_renewed": False
     })
 
     return {

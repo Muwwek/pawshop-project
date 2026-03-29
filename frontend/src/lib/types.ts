@@ -27,7 +27,7 @@ export interface Contract {
   itemDescription: string;
   amount: number;
   interestRate: number;
-  status: 'ACTIVE' | 'REDEEMED' | 'FORFEITED' | 'EXPIRED';
+  status: 'ACTIVE' | 'REDEEMED' | 'FORFEITED' | 'EXPIRED' | 'NEAR_DUE' | 'RENEWED';
   startDate: string;
   dueDate: string;
   interestDue: number;
@@ -52,6 +52,7 @@ export interface Payment {
   contractId: string;
   contractNumber: string;
   customerName: string;
+  itemName: string;
   type: 'INTEREST' | 'REDEMPTION';
   amount: number;
   paidAt: string;
@@ -59,13 +60,23 @@ export interface Payment {
 }
 
 export interface ReportSummary {
-  totalActiveContracts: number;
+  totalNewContracts: number;
   totalInterestEarned: number;
   totalRedeemedContracts: number;
+  totalRedeemedAmount: number;
+  totalReceived: number;
+  totalPrincipalLent: number;
   totalForfeited: number;
-  totalAmountLent: number;
-  monthlyInterest: { month: string; amount: number; year?: number; monthIndex?: number }[];
-  contractsByStatus: { status: string; count: number }[];
+  dailyRevenue: { day: number; interest: number; redemption: number; total: number }[];
+  recentTransactions: { 
+    id: string; 
+    type: 'PAWN' | 'REDEMPTION' | 'RENEWAL'; 
+    contractNumber: string; 
+    customerName: string; 
+    itemName: string; 
+    amount: number; 
+    date: string 
+  }[];
 }
 
 export interface Settings {
@@ -83,7 +94,6 @@ export const ROLE_PERMISSIONS: Record<Role, string[]> = {
     '/dashboard/customers',
     '/dashboard/payments',
     '/dashboard/reports',
-    '/dashboard/settings',
   ],
   [Role.STAFF]: [
     '/dashboard',
@@ -111,6 +121,5 @@ export const MENU_ITEMS: MenuItem[] = [
   { label: 'ลูกค้า', href: '/dashboard/customers', icon: '👥', roles: [Role.OWNER, Role.STAFF] },
   { label: 'ชำระเงิน', href: '/dashboard/payments', icon: '💰', roles: [Role.OWNER, Role.STAFF] },
   { label: 'รายงาน', href: '/dashboard/reports', icon: '📈', roles: [Role.OWNER] },
-  { label: 'ตั้งค่า', href: '/dashboard/settings', icon: '⚙️', roles: [Role.OWNER] },
   { label: 'พอร์ทัลลูกค้า', href: '/dashboard/portal', icon: '🏠', roles: [Role.CUSTOMER] },
 ];

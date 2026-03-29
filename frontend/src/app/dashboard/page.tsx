@@ -30,72 +30,30 @@ export default async function DashboardPage() {
     return `฿ ${amount.toLocaleString('th-TH')}`;
   };
 
-  // ลอจิกการคำนวณ % การเปลี่ยนแปลงจากเดือนที่แล้ว
-  const today = new Date();
-  const currentMonth = today.getMonth();
-  const currentYear = today.getFullYear();
-  const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-  const lastMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
-  const isCurrentMonth = (dateString?: string) => {
-    if (!dateString) return false;
-    const d = new Date(dateString);
-    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-  };
-
-  const isLastMonth = (dateString?: string) => {
-    if (!dateString) return false;
-    const d = new Date(dateString);
-    return d.getMonth() === lastMonth && d.getFullYear() === lastMonthYear;
-  };
-
-  const calcChange = (current: number, previous: number) => {
-    if (previous === 0) return current > 0 ? 100 : 0;
-    return Math.round(((current - previous) / previous) * 100);
-  };
-
-  const currentMonthContracts = contracts.filter(c => isCurrentMonth(c.createdAt || c.startDate));
-  const lastMonthContracts = contracts.filter(c => isLastMonth(c.createdAt || c.startDate));
-  const contractChange = calcChange(currentMonthContracts.length, lastMonthContracts.length);
-
-  const currentMonthLent = currentMonthContracts.reduce((sum, c) => sum + c.amount, 0);
-  const lastMonthLent = lastMonthContracts.reduce((sum, c) => sum + c.amount, 0);
-  const lentChange = calcChange(currentMonthLent, lastMonthLent);
-
-  const currentMonthInterest = payments.filter(p => p.type === 'INTEREST' && isCurrentMonth(p.paidAt)).reduce((sum, p) => sum + p.amount, 0);
-  const lastMonthInterest = payments.filter(p => p.type === 'INTEREST' && isLastMonth(p.paidAt)).reduce((sum, p) => sum + p.amount, 0);
-  const interestChange = calcChange(currentMonthInterest, lastMonthInterest);
-
-  const currentMonthCustomers = customers.filter(c => isCurrentMonth(c.createdAt));
-  const lastMonthCustomers = customers.filter(c => isLastMonth(c.createdAt));
-  const customerChange = calcChange(currentMonthCustomers.length, lastMonthCustomers.length);
 
   const stats = [
     {
       title: 'สัญญาที่จำนำอยู่',
       value: activeContracts.length.toLocaleString(),
-      change: contractChange,
       icon: FileText,
       color: 'emerald',
     },
     {
-      title: 'ยอดเงินทั้งหมด',
+      title: 'ยอดเงินต้นทั้งหมด',
       value: formatCurrency(totalLent),
-      change: lentChange,
       icon: Wallet,
       color: 'indigo',
     },
     {
       title: 'ดอกเบี้ยรวม',
       value: formatCurrency(totalInterest),
-      change: interestChange,
       icon: TrendingUp,
       color: 'purple',
     },
     {
       title: 'ลูกค้าทั้งหมด',
       value: customers.length.toLocaleString(),
-      change: customerChange,
       icon: Users,
       color: 'blue',
     },
@@ -144,9 +102,6 @@ export default async function DashboardPage() {
       {(user.role === Role.OWNER || user.role === Role.STAFF) && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {stats.map((stat, index) => {
-            const Icon = stat.icon;
-            const isPositive = stat.change > 0;
-            const isNeutral = stat.change === 0;
             return (
               <div
                 key={index}
@@ -156,22 +111,10 @@ export default async function DashboardPage() {
                   <div>
                     <p className="text-slate-400 text-sm mb-1">{stat.title}</p>
                     <p className="text-2xl font-bold text-white tracking-wide">{stat.value}</p>
-                    <div className="flex items-center gap-1 mt-2">
-                      {isPositive ? (
-                        <ArrowUpRight className={`w-4 h-4 text-emerald-400`} />
-                      ) : isNeutral ? (
-                        <Minus className={`w-4 h-4 text-slate-500`} />
-                      ) : (
-                        <ArrowDownRight className={`w-4 h-4 text-red-400`} />
-                      )}
-                      <span className={`text-sm font-medium ${isPositive ? `text-emerald-400` : isNeutral ? 'text-slate-500' : 'text-red-400'}`}>
-                        {isPositive ? '+' : ''}{stat.change}%
-                      </span>
-                      <span className="text-slate-500 text-sm ml-1">จากเดือนที่แล้ว</span>
-                    </div>
+
                   </div>
                   <div className={`w-12 h-12 rounded-xl bg-${stat.color}-500/10 flex items-center justify-center`}>
-                    <Icon className={`w-6 h-6 text-${stat.color}-400`} />
+                    <stat.icon className={`w-6 h-6 text-${stat.color}-400`} />
                   </div>
                 </div>
               </div>

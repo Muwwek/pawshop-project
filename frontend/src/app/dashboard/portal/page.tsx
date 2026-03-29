@@ -18,6 +18,10 @@ export default async function CustomerPortalPage() {
     (sum: number, c: Contract) => sum + c.amount,
     0
   );
+  const totalInterestDue = activeContracts.reduce(
+    (sum: number, c: Contract) => sum + (c.interestDue || 0),
+    0
+  );
 
   return (
     <div className="space-y-8 animate-in">
@@ -65,11 +69,11 @@ export default async function CustomerPortalPage() {
         <div className="p-6 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.05] transition-all">
           <div className="flex items-center gap-4 mb-4">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-              <CheckCircle2 className="w-6 h-6 text-emerald-400" />
+              <TrendingUp className="w-6 h-6 text-emerald-400" />
             </div>
             <div>
-              <p className="text-slate-400 text-sm">การชำระเงินแล้ว</p>
-              <p className="text-2xl font-bold text-white">{payments.length} รายการ</p>
+              <p className="text-slate-400 text-sm">ดอกเบี้ยที่ต้องชำระ</p>
+              <p className="text-2xl font-bold text-white">฿{totalInterestDue.toLocaleString()}</p>
             </div>
           </div>
         </div>

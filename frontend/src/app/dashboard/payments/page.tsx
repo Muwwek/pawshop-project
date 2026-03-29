@@ -38,7 +38,7 @@ export default function PaymentsPage() {
       ]);
       setPayments(paymentsData);
       setFilteredPayments(paymentsData);
-      setActiveContracts(allContracts.filter(c => c.status === 'ACTIVE' || c.status === 'EXPIRED'));
+      setActiveContracts(allContracts.filter(c => ['ACTIVE', 'EXPIRED', 'NEAR_DUE', 'RENEWED'].includes(c.status)));
     } catch (error) {
       console.error('Failed to load payments:', error);
     } finally {
@@ -53,7 +53,8 @@ export default function PaymentsPage() {
       filtered = filtered.filter(
         (p) =>
           p.contractNumber.toLowerCase().includes(q) ||
-          p.customerName.toLowerCase().includes(q)
+          p.customerName.toLowerCase().includes(q) ||
+          p.itemName?.toLowerCase().includes(q)
       );
     }
     if (typeFilter) {
@@ -125,6 +126,7 @@ export default function PaymentsPage() {
   const columns = [
     { key: 'contractNumber', label: 'เลขสัญญา' },
     { key: 'customerName', label: 'ชื่อลูกค้า' },
+    { key: 'itemName', label: 'รายการ' },
     {
       key: 'type',
       label: 'ประเภท',

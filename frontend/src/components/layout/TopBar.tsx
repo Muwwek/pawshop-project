@@ -52,11 +52,11 @@ export default function TopBar({ userName, role }: TopBarProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-4">
-        {/* Notifications */}
-        <button className="relative p-2 text-slate-400 hover:text-white transition-colors rounded-xl hover:bg-white/[0.03]">
+        {/* Notifications (Hidden for now) */}
+        {/* <button className="relative p-2 text-slate-400 hover:text-white transition-colors rounded-xl hover:bg-white/[0.03]">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-        </button>
+        </button> */}
 
         {/* Role Badge */}
         <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border ${roleColors[role]}`}>

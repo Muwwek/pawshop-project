@@ -40,13 +40,28 @@ export async function getCustomers(): Promise<Customer[]> {
   return apiFetch<Customer[]>('/api/customers/');
 }
 
+export async function getCustomerHistory(id: string): Promise<any> {
+  return apiFetch<any>(`/api/customers/${id}/history`);
+}
+
 export async function getPayments(contractId?: string): Promise<Payment[]> {
   const path = contractId ? `/api/payments/?contractId=${contractId}` : '/api/payments/';
   return apiFetch<Payment[]>(path);
 }
 
-export async function getReportSummary(): Promise<ReportSummary> {
-  return apiFetch<ReportSummary>('/api/reports/');
+export async function getReportSummary(year?: number, month?: number, day?: number): Promise<ReportSummary> {
+  let path = '/api/reports/';
+  const params = new URLSearchParams();
+  if (year) params.append('year', year.toString());
+  if (month) params.append('month', month.toString());
+  if (day) params.append('day', day.toString());
+  
+  const queryString = params.toString();
+  if (queryString) {
+    path += `?${queryString}`;
+  }
+  
+  return apiFetch<ReportSummary>(path);
 }
 
 export async function getSettings(): Promise<Settings> {
@@ -129,6 +144,20 @@ export async function updateSettings(data: Settings): Promise<{ success: boolean
     credentials: 'include',
   });
   if (!res.ok) throw new Error('Failed to update settings');
+  return res.json();
+}
+
+export async function resetCustomerPassword(id: string, data: { password: string }): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_BASE_URL}/api/customers/${id}/password`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+    credentials: 'include',
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.detail || 'Failed to reset password');
+  }
   return res.json();
 }
 

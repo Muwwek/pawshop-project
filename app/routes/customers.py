@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from bson import ObjectId
 from app.db import db
-from app.utils.security import get_current_user
+from app.utils.security import get_current_user, hash_password
 from app.models import Role
 import datetime
 from typing import Optional, Dict, Any
@@ -139,3 +139,114 @@ async def update_customer(customer_id: str, data: Dict[str, Any], user: dict = D
         )
     
     return {"success": True, "message": "อัปเดตข้อมูลสำเร็จ"}
+
+@router.get("/{customer_id}/history")
+async def get_customer_history(customer_id: str, user: dict = Depends(get_current_user)):
+    if user["role"] not in [Role.OWNER, Role.STAFF]:
+        raise HTTPException(status_code=403, detail="ไม่มีสิทธิ์ดูประวัติลูกค้า")
+        
+    customer = db.customers.find_one({"_id": ObjectId(customer_id)})
+    if not customer:
+        raise HTTPException(status_code=404, detail="ไม่พบข้อมูลลูกค้า")
+        
+    # ดึงสัญญาทั้งหมดของลูกค้า
+    contracts_cursor = db.contracts.find({"customer_id": ObjectId(customer_id)}).sort("created_at", -1)
+    contracts = list(contracts_cursor)
+    
+    # ดึง payments ทั้งหมดของสัญญาเหล่านี้
+    contract_ids = [c["_id"] for c in contracts]
+    payments_cursor = db.payments.find({"contract_id": {"$in": contract_ids}}).sort("payment_date", -1)
+    payments = list(payments_cursor)
+    
+    # Format Response
+    now = datetime.datetime.utcnow()
+    formatted_contracts = []
+    
+    # Cache สำหรับ Item และ User (Staff)
+    item_ids = [c["item_id"] for c in contracts if c.get("item_id")]
+    items = {str(i["_id"]): i for i in db.items.find({"_id": {"$in": item_ids}})}
+    users = {str(u["_id"]): u.get("first_name", u.get("username", "System")) for u in db.users.find({}, {"first_name": 1, "username": 1})}
+
+    for c in contracts:
+        item = items.get(str(c.get("item_id")), {})
+        
+        # คำนวณสถานะเหมือนหน้ารวม
+        db_status = c.get("status")
+        display_status = db_status
+        is_renewed = c.get("is_renewed", False)
+        if db_status == "ACTIVE":
+            due_date_dt = c.get("due_date")
+            if due_date_dt:
+                if now > due_date_dt:
+                    display_status = "EXPIRED"
+                elif (due_date_dt - now).days <= 7:
+                    display_status = "NEAR_DUE"
+                elif is_renewed:
+                    display_status = "RENEWED"
+                    
+        creator_id = str(c.get("created_by_id")) if c.get("created_by_id") else None
+        created_by_name = users.get(creator_id, "System")
+        
+        formatted_contracts.append({
+            "id": str(c["_id"]),
+            "contractNumber": c.get("contract_number"),
+            "itemName": item.get("name", "N/A"),
+            "itemDescription": item.get("description", "N/A"),
+            "amount": c.get("principal_amount"),
+            "interestRate": c.get("interest_rate"),
+            "estimatedValue": c.get("estimated_value"),
+            "status": display_status,
+            "startDate": c.get("start_date").isoformat() if c.get("start_date") else None,
+            "dueDate": c.get("due_date").isoformat() if c.get("due_date") else None,
+            "createdAt": c.get("created_at").isoformat() if c.get("created_at") else None,
+            "createdBy": created_by_name,
+        })
+        
+    formatted_payments = []
+    for p in payments:
+        formatted_payments.append({
+            "id": str(p["_id"]),
+            "contractId": str(p.get("contract_id")),
+            "type": p.get("type"),
+            "amount": p.get("amount"),
+            "paymentDate": p.get("payment_date").isoformat() if p.get("payment_date") else None,
+            "recordedBy": users.get(str(p.get("recorded_by"))) if p.get("recorded_by") else "System",
+        })
+
+    return {
+        "customer": {
+            "id": str(customer["_id"]),
+            "name": f"{customer.get('first_name', '')} {customer.get('last_name', '')}".strip(),
+            "firstName": customer.get("first_name", ""),
+            "lastName": customer.get("last_name", ""),
+            "email": customer.get("email", ""),
+            "phone": customer.get("phone", ""),
+            "idCard": customer.get("id_card", ""),
+            "address": customer.get("address", ""),
+            "createdAt": customer.get("created_at").isoformat() if customer.get("created_at") else None,
+        },
+        "contracts": formatted_contracts,
+        "payments": formatted_payments
+    }
+@router.put("/{customer_id}/password")
+async def reset_customer_password(customer_id: str, data: Dict[str, Any], user: dict = Depends(get_current_user)):
+    if user["role"] != Role.OWNER:
+        raise HTTPException(status_code=403, detail="เฉพาะเจ้าของร้านเท่านั้นที่สามารถรีเซ็ตรหัสผ่านได้")
+    
+    new_password = data.get("password")
+    if not new_password or len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร")
+    
+    # ตรวจสอบว่ามี User ที่พ่วงกับลูกค้านี้จริงหรือไม่
+    linked_user = db.users.find_one({"customer_id": ObjectId(customer_id)})
+    if not linked_user:
+        raise HTTPException(status_code=404, detail="ลูกค้านี้ยังไม่ได้สมัครสมาชิกเข้าใช้งานระบบ")
+    
+    # Hash และ Update
+    hashed = hash_password(new_password)
+    db.users.update_one(
+        {"_id": linked_user["_id"]},
+        {"$set": {"password": hashed}}
+    )
+    
+    return {"success": True, "message": "รีเซ็ตรหัสผ่านสำเร็จ"}

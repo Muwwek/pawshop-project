@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Box, Sparkles, TrendingUp, Users, Clock, ChevronRight } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Box, Sparkles, TrendingUp, Users, Clock, ChevronRight, Banknote, UserPlus } from 'lucide-react';
 
 export default function LandingPage() {
   return (
@@ -31,30 +31,11 @@ export default function LandingPage() {
         <div className="flex items-center gap-3">
           <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20" />
-            <span className="relative text-xl font-bold text-white">P</span>
+            <Banknote className="relative w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-200">
             PawShop
           </span>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="hidden sm:block text-sm text-indigo-200/70 hover:text-white transition-colors"
-          >
-            เข้าสู่ระบบ
-          </Link>
-          <Link
-            href="/login"
-            className="group relative px-5 py-2.5 text-sm font-medium text-white rounded-full overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 transition-all duration-300 group-hover:scale-105" />
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-indigo-400 to-purple-500" />
-            <span className="relative flex items-center gap-2">
-              เริ่มต้นใช้งาน
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </span>
-          </Link>
         </div>
       </nav>
 
@@ -91,16 +72,16 @@ export default function LandingPage() {
               className="group relative px-8 py-4 bg-white text-slate-900 rounded-full font-semibold text-lg overflow-hidden transition-all duration-300 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]"
             >
               <span className="relative flex items-center gap-2">
-                ทดลองใช้งานฟรี
+                เข้าสู่ระบบ  
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
             <Link
               href="/register"
-              className="group px-8 py-4 text-white/80 hover:text-white font-medium transition-colors flex items-center gap-2"
+              className="group px-8 py-4 text-indigo-200/90 hover:text-white font-semibold text-lg transition-all duration-300 flex items-center gap-2 hover:drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
             >
               สมัครสมาชิก
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <UserPlus className="w-5 h-5 group-hover:scale-110 transition-transform" />
             </Link>
           </div>
 
@@ -237,7 +218,7 @@ export default function LandingPage() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">P</span>
+                <Banknote className="w-4 h-4 text-white" />
               </div>
               <span className="text-white font-semibold">PawShop</span>
             </div>

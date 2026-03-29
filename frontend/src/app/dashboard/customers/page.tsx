@@ -5,8 +5,10 @@ import Table from '@/components/ui/Table';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
+import Link from 'next/link';
 import { Customer } from '@/lib/types';
-import { getCustomers, createCustomer, updateCustomer, getClientSession } from '@/lib/api';
+import { getCustomers, createCustomer, updateCustomer, getClientSession, resetCustomerPassword } from '@/lib/api';
+import { Key } from 'lucide-react';
 import Toast from '@/components/ui/Toast';
 import { useToast } from '@/hooks/useToast';
 
@@ -18,6 +20,8 @@ export default function CustomersPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+  const [resetPassword, setResetPassword] = useState('');
   const { toast, showToast, hideToast } = useToast();
 
   useEffect(() => {
@@ -99,6 +103,23 @@ export default function CustomersPage() {
     }
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomer) return;
+    
+    setSubmitting(true);
+    try {
+      await resetCustomerPassword(selectedCustomer.id, { password: resetPassword });
+      showToast(`รีเซ็ตรหัสผ่านให้ ${selectedCustomer.name} สำเร็จ`, 'success');
+      setIsResetModalOpen(false);
+      setResetPassword('');
+    } catch (error: any) {
+      showToast(error.message || 'เกิดข้อผิดพลาด', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const columns = [
     {
       key: 'name',
@@ -134,15 +155,40 @@ export default function CustomersPage() {
       key: 'actions',
       label: 'จัดการ',
       render: (item: Customer) => (
-        <button
-          onClick={() => {
-            setSelectedCustomer(item);
-            setIsModalOpen(true);
-          }}
-          className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
-        >
-          แก้ไข
-        </button>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/dashboard/customers/${item.id}`}
+            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+          >
+            ดูประวัติ
+          </Link>
+          <span className="text-gray-300">|</span>
+          <button
+            onClick={() => {
+              setSelectedCustomer(item);
+              setIsModalOpen(true);
+            }}
+            className="text-gray-600 hover:text-gray-900 text-sm font-medium"
+          >
+            แก้ไข
+          </button>
+          {currentUser?.role === 'OWNER' && item.hasUser && (
+            <>
+              <span className="text-gray-300">|</span>
+              <button
+                onClick={() => {
+                  setSelectedCustomer(item);
+                  setIsResetModalOpen(true);
+                }}
+                className="text-amber-600 hover:text-amber-800 flex items-center gap-1 text-sm font-medium"
+                title="รีเซ็ตรหัสผ่าน"
+              >
+                <Key className="w-3.5 h-3.5" />
+                กู้รหัส
+              </button>
+            </>
+          )}
+        </div>
       ),
     },
   ];
@@ -260,6 +306,51 @@ export default function CustomersPage() {
             </Button>
             <Button type="submit" loading={submitting}>
               {selectedCustomer ? 'บันทึกการแก้ไข' : 'เพิ่มลูกค้า'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Reset Password Modal */}
+      <Modal
+        isOpen={isResetModalOpen}
+        onClose={() => {
+          setIsResetModalOpen(false);
+          setResetPassword('');
+        }}
+        title="รีเซ็ตรหัสผ่านลูกค้า"
+      >
+        <form onSubmit={handleResetPassword} className="space-y-4">
+          <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl mb-4">
+            <p className="text-sm text-amber-800">
+              คุณกำลังจะเปลี่ยนรหัสผ่านให้กับ <strong>{selectedCustomer?.name}</strong> <br/>
+              กรุณาระบุรหัสผ่านใหม่ที่ต้องการ (ขั้นต่ำ 6 ตัวอักษร)
+            </p>
+          </div>
+          
+          <Input
+            label="รหัสผ่านใหม่"
+            type="password"
+            value={resetPassword}
+            onChange={(e) => setResetPassword(e.target.value)}
+            placeholder="กรอกรหัสผ่านใหม่"
+            required
+            autoFocus
+          />
+          
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => {
+                setIsResetModalOpen(false);
+                setResetPassword('');
+              }}
+            >
+              ยกเลิก
+            </Button>
+            <Button type="submit" loading={submitting} variant="primary">
+              ยืนยันเปลี่ยนรหัสผ่าน
             </Button>
           </div>
         </form>

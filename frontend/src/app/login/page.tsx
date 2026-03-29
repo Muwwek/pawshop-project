@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Eye, EyeOff, Lock, User, ArrowRight, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Lock, User, ArrowRight, Banknote } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 
@@ -72,7 +72,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-2xl shadow-indigo-500/20 mb-4 relative overflow-hidden group">
             <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20" />
-            <Sparkles className="w-8 h-8 text-white relative" />
+            <Banknote className="w-8 h-8 text-white relative" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-1">PawShop</h1>
           <p className="text-slate-400 text-sm">ระบบจัดการร้านรับจำนำ</p>
@@ -220,11 +220,11 @@ export default function LoginPage() {
               {[
                 { user: 'owner01', label: 'เจ้าของ', icon: '👑', color: 'amber' },
                 { user: 'staff01', label: 'พนักงาน', icon: '👤', color: 'blue' },
-                { user: 'customer01', label: 'ลูกค้า', icon: '🏠', color: 'emerald' },
+                { user: 'touch@gmail.com', label: 'ลูกค้า', icon: '🏠', color: 'emerald' },
               ].map((demo) => (
                 <button
                   key={demo.user}
-                  onClick={() => setDemoCredentials(demo.user, demo.user === 'customer01' ? 'abc1234' : 'myteam12345')}
+                  onClick={() => setDemoCredentials(demo.user, demo.user === 'touch@gmail.com' ? '1234' : 'myteam12345')}
                   className={`group flex flex-col items-center gap-2 px-3 py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-${demo.color}-500/30 transition-all duration-300`}
                 >
                   <span className="text-xl group-hover:scale-110 transition-transform duration-300">
